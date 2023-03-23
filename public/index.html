@@ -47,9 +47,9 @@
         domain: "dev-126m5i2rlnt4m3xf.us.auth0.com",
         clientId: "i20BwUYhmcq7Qdv7OhdWMNrcKUQG9Go4",
         authorizationParams: {
-          audience: "https://www.test.com",
-          scopes: ["read:protected"],
-          redirect_uri: "http://localhost:3000/",
+          scope: "write:/credentials write:/presentations",
+          audience: "https://localhost:39443/issuers/z19o4HJQJvMkSTQ8dS89BYdFh",
+          redirect_uri: "https://localhost:3000/",
         }
       });
       const query = window.location.search;
