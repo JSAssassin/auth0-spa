@@ -1,0 +1,130 @@
+<html>
+
+<head>
+  <style>
+    .hidden {
+      display: none;
+    }
+    label {
+      margin-bottom: 10px;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Learning Auth0</h1>
+  <button id="btn-login" disabled="true" onclick="login()">Log in</button>
+  <button id="btn-logout" disabled="true" onclick="logout()">Log out</button>
+  <h2>Fetch Open API</h2>
+  <h3 id="openMessage"></h3>
+  <button onclick="fetchOpenApi()">Open API</button>
+  <h2>Fetch Members Only API</h2>
+  <h3 id="moMessage"></h3>
+  <button onclick="fetchMembersOnlyApi()">Members Only API</button>
+  <h2>Fetch Protected API</h2>
+  <h3 id="protectedMessage"></h3>
+  <button onclick="fetchProtectedApi()">Protected API</button>
+  <hr>
+  <div class="hidden" id="gated-content">
+    <p>
+      This content is hidden until user is logged in.
+    </p>
+    <label>
+      Access token:
+      <pre id="ipt-access-token"></pre>
+    </label>
+    <label>
+      User profile:
+      <pre id="ipt-user-profile"></pre>
+    </label>
+  </div>
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+  <script>
+    let auth0Client = null;
+    window.onload = async (event) => {
+      auth0Client = await auth0.createAuth0Client({
+        domain: "dev-126m5i2rlnt4m3xf.us.auth0.com",
+        clientId: "i20BwUYhmcq7Qdv7OhdWMNrcKUQG9Go4",
+        authorizationParams: {
+          audience: "https://www.test.com",
+          scopes: ["read:protected"],
+          redirect_uri: "http://localhost:3000/",
+        }
+      });
+      const query = window.location.search;
+      if (query.includes("code=") && query.includes("state=")) {
+        // it means we were redirected back to the app by auth0
+        await auth0Client.handleRedirectCallback();
+
+        // Remove the code and state from the url.
+        // The user doesn't need to see that
+        window.history.replaceState({}, document.title, "/");
+      }
+
+      const isAuthenticated = await auth0Client.isAuthenticated();
+      console.log("user is logged in?", isAuthenticated);
+      document.getElementById("btn-login").disabled = isAuthenticated;
+      document.getElementById("btn-logout").disabled = !isAuthenticated;
+
+      if (isAuthenticated) {
+        document.getElementById("gated-content").classList
+          .remove("hidden");
+
+        document.getElementById("ipt-access-token").innerHTML =
+          await auth0Client.getTokenSilently();
+        document.getElementById("ipt-user-profile").textContent =
+          JSON.stringify(await auth0Client.getUser());
+      } else {
+        document.getElementById("gated-content").classList.add("hidden");
+      }
+    };
+
+    async function login() {
+      const options = {
+        authorizationParams: {
+          redirect_uri: window.location.origin
+        },
+      };
+      auth0Client.loginWithRedirect(options);
+    }
+
+    async function logout() {
+      auth0Client.logout({
+        returnTo: window.location.origin
+      });
+    };
+
+    async function fetchOpenApi() {
+      let result = await fetch("/api/open");
+      let json = await result.json();
+      document.getElementById("openMessage").innerHTML = JSON.stringify(json.message);
+    }
+
+    async function fetchMembersOnlyApi() {
+      const token = await auth0Client.getTokenSilently();
+      let result = await fetch("/api/members-only", {
+        method: "GET",
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      });
+      let json = await result.json();
+      document.getElementById("moMessage").innerHTML = JSON.stringify(json.message);
+    }
+
+    async function fetchProtectedApi() {
+      const token = await auth0Client.getTokenSilently();
+      let result = await fetch("/api/protected", {
+        method: "GET",
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      });
+      let json = await result.text();
+      document.getElementById("protectedMessage").innerHTML = JSON.stringify(json);
+    }
+  </script>
+</body>
+
+</html>
