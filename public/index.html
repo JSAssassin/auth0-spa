@@ -97,8 +97,8 @@
 
     async function fetchOpenApi() {
       let result = await fetch("/api/open");
-      let json = await result.json();
-      document.getElementById("openMessage").innerHTML = JSON.stringify(json.message);
+      let data = await result.json();
+      document.getElementById("openMessage").innerHTML = JSON.stringify(data.message);
     }
 
     async function fetchMembersOnlyApi() {
@@ -109,8 +109,8 @@
           Authorization: 'Bearer ' + token
         }
       });
-      let json = await result.json();
-      document.getElementById("moMessage").innerHTML = JSON.stringify(json.message);
+      let data = await result.json();
+      document.getElementById("moMessage").innerHTML = JSON.stringify(data.message);
     }
 
     async function fetchProtectedApi() {
@@ -121,8 +121,8 @@
           Authorization: 'Bearer ' + token
         }
       });
-      let json = await result.text();
-      document.getElementById("protectedMessage").innerHTML = JSON.stringify(json);
+      let data = await result.json();
+      document.getElementById("protectedMessage").innerHTML = JSON.stringify(data.message);
     }
   </script>
 </body>
